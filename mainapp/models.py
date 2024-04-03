@@ -25,6 +25,41 @@ class Section(models.Model):
     def __str__(self):
         return self.name
 
+class FeedbackPage(models.Model):
+    name = models.CharField(max_length=100)
+    sections = models.ManyToManyField('FeedbackSection', blank=True, related_name='feedback_page_section')
+    signature = models.ManyToManyField('Signature', blank=True, related_name='feedback_page_signature')
+
+    def __str__(self):
+        return str(self.id)
+
+class FeedbackSection(models.Model):
+    name=models.CharField(max_length=100)
+    Fields=models.ManyToManyField('FeedbackField', blank=True, related_name='feedback_section_fields')
+
+    def __str__(self):
+        return self.name
+
+class FeedbackField(models.Model):
+    name=models.CharField(max_length=100)
+    options=models.ManyToManyField('FeedbackFieldsChoice', blank=True, related_name='feedback_field_options')
+
+    def __str__(self):
+        return self.name
+    
+class FeedbackFieldsChoice(models.Model):
+    choice=models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.choice
+
+class Signature(models.Model):
+    name=models.CharField(max_length=100)
+    required=models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
+
 class DevelopmentPage(models.Model):
     id = models.AutoField(primary_key=True)
     development_goal = models.CharField(max_length=100)
@@ -83,12 +118,12 @@ class Class(models.Model):
     first_page = models.ForeignKey('ReportPage',related_name='class_first_page', on_delete=models.CASCADE)
     first_page_access = models.ForeignKey("Teacher",related_name='class_first_page_access', on_delete=models.SET_NULL, null = True, blank=True)
     development_page = models.ManyToManyField('DevelopmentPage', blank=True, related_name='class_development_page')
+    feedback_page = models.ForeignKey('FeedbackPage', blank=True, related_name='class_feedback_page', on_delete=models.SET_NULL, null=True)
     default_background = models.ImageField(upload_to='mainapp/static/backgrounds/', blank=True, null=True)
     # Add other fields as needed
 
     def __str__(self):
         return self.name
-
 
 
 class UserManager(BaseUserManager):

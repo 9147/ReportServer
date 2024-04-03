@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ReportField, ReportPage, Class, DevelopmentPage, Choice, LearningOutcome, Section
+from .models import ReportField, ReportPage, Class, DevelopmentPage, Choice, LearningOutcome, Section, FeedbackField, FeedbackFieldsChoice, FeedbackPage, FeedbackSection, Signature
 
 
 class ChoiceSerializer(serializers.ModelSerializer):
@@ -7,6 +7,37 @@ class ChoiceSerializer(serializers.ModelSerializer):
         model = Choice
         fields = '__all__'
 
+class FeedbackFieldsChoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FeedbackFieldsChoice
+        fields = '__all__'
+
+class FeedbackFieldSerializer(serializers.ModelSerializer):
+    options = FeedbackFieldsChoiceSerializer(many=True)
+
+    class Meta:
+        model = FeedbackField
+        fields = '__all__'
+
+class FeedbackSectionSerializer(serializers.ModelSerializer):
+    Fields = FeedbackFieldSerializer(many=True)
+
+    class Meta:
+        model = FeedbackSection
+        fields = '__all__'
+    
+class SignatureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Signature
+        fields = '__all__'
+
+class FeedbackPageSerializer(serializers.ModelSerializer):
+    sections = FeedbackSectionSerializer(many=True)
+    signature = SignatureSerializer(many=True)
+
+    class Meta:
+        model = FeedbackPage
+        fields = '__all__'
 
 class LearningOutcomeSerializer(serializers.ModelSerializer):
     choice = ChoiceSerializer(many=True)
@@ -49,6 +80,7 @@ class ClassSerializer(serializers.ModelSerializer):
     cover_page = ReportPageSerializer()
     first_page = ReportPageSerializer()
     development_page = DevelopmentPageSerializer(many=True)
+    feedback_page = FeedbackPageSerializer()
 
 
     class Meta:

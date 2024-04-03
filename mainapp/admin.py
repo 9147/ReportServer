@@ -1,4 +1,4 @@
-from .models import Class, ReportPage, ReportField, LearningOutcome, Choice, Section, DevelopmentPage
+from .models import Class, ReportPage, ReportField, LearningOutcome, Choice, Section, DevelopmentPage, FeedbackField, FeedbackFieldsChoice, FeedbackPage, FeedbackSection, Signature
 from .forms import UserAdminCreationForm, UserAdminChangeForm
 from django.contrib import admin
 from django.contrib.auth import get_user_model
@@ -88,6 +88,35 @@ class DevelopmentAdmin(admin.ModelAdmin):
 
     def __str__(self):
         return self.development_goal
+    
+@admin.register(FeedbackField)
+class FeedbackFieldAdmin(admin.ModelAdmin):
+    list_display = ['name']
+
+    def __str__(self):
+        return self.name
+    
+@admin.register(FeedbackFieldsChoice)
+class FeedbackFieldsChoiceAdmin(admin.ModelAdmin):
+    list_display = ['choice']
+
+    def __str__(self):
+        return self.choice
+
+@admin.register(FeedbackPage)
+class FeedbackPageAdmin(admin.ModelAdmin):
+    list_display = ['name']
+
+    def __str__(self):
+        return self.name    
+    
+@admin.register(FeedbackSection)
+class FeedbackSectionAdmin(admin.ModelAdmin):
+    list_display = ['name']
+
+    def __str__(self):
+        return self.name
+
 
 
 
