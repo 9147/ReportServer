@@ -1,6 +1,17 @@
 from rest_framework import serializers
-from .models import ReportField, ReportPage, Class, DevelopmentPage, Choice, LearningOutcome, Section, FeedbackField, FeedbackFieldsChoice, FeedbackPage, FeedbackSection, Signature
+from .models import ReportField, ReportPage, Class, DevelopmentPage, Choice, LearningOutcome, Section, FeedbackField, FeedbackFieldsChoice, FeedbackPage, FeedbackSection, Signature, Image , ImagePage
 
+class ImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Image
+        fields = '__all__'
+
+class ImagePageSerializer(serializers.ModelSerializer):
+    images = ImageSerializer(many=True)
+
+    class Meta:
+        model = ImagePage
+        fields = '__all__'
 
 class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -79,6 +90,7 @@ class ReportPageSerializer(serializers.ModelSerializer):
 class ClassSerializer(serializers.ModelSerializer):
     cover_page = ReportPageSerializer()
     first_page = ReportPageSerializer()
+    Image_page = ImagePageSerializer()
     development_page = DevelopmentPageSerializer(many=True)
     feedback_page = FeedbackPageSerializer()
 

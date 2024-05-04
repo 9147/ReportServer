@@ -33,7 +33,7 @@ def data_api(request):
 
         # Serialize the data
         class_serializer = ClassSerializer(classes, many=True)
-
+        print(class_serializer)
         # Return the serialized data
         return Response({
             'access': 'Granted',

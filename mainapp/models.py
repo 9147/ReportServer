@@ -117,6 +117,7 @@ class Class(models.Model):
     cover_page_access = models.ForeignKey("Teacher",related_name='class_cover_page_access', on_delete=models.SET_NULL, null = True, blank=True)
     first_page = models.ForeignKey('ReportPage',related_name='class_first_page', on_delete=models.CASCADE)
     first_page_access = models.ForeignKey("Teacher",related_name='class_first_page_access', on_delete=models.SET_NULL, null = True, blank=True)
+    Image_page = models.ForeignKey('ImagePage',related_name='class_image_page', on_delete=models.SET_NULL, null=True, blank=True)
     development_page = models.ManyToManyField('DevelopmentPage', blank=True, related_name='class_development_page')
     feedback_page = models.ForeignKey('FeedbackPage', blank=True, related_name='class_feedback_page', on_delete=models.SET_NULL, null=True)
     default_background = models.ImageField(upload_to='mainapp/static/backgrounds/', blank=True, null=True)
@@ -125,6 +126,19 @@ class Class(models.Model):
     def __str__(self):
         return self.name
 
+class ImagePage(models.Model):
+    image = models.ImageField(upload_to='mainapp/static/backgrounds/')
+    images=models.ManyToManyField('Image', blank=True, related_name='image_page_images')
+
+    def __str__(self):
+        return str(self.id)
+
+class Image(models.Model):
+    title = models.CharField(max_length=100)
+    height = models.FloatField()
+    width = models.FloatField()
+    x = models.FloatField()
+    y = models.FloatField()
 
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None):
