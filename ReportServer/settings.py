@@ -30,7 +30,7 @@ DEBUG = True
 
 AUTH_USER_MODEL = "mainapp.Teacher"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['0000manoj0000.pythonanywhere.com','127.0.0.1']
 
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
