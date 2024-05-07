@@ -39,6 +39,7 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 INSTALLED_APPS = [
     'mainapp',
+    'updates',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
