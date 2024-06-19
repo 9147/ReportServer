@@ -37,9 +37,9 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 # Application definition
 
+
 INSTALLED_APPS = [
     'mainapp',
-    'updates',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -80,6 +80,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'ReportServer.wsgi.application'
+ASGI_APPLICATION = "ReportServer.asgi.application"
 
 
 # Database

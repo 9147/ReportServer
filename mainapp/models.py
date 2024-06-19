@@ -1,6 +1,8 @@
+from django.utils import timezone
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+import random, string
+from django.db import OperationalError
 
 class LearningOutcome(models.Model):
     code=models.CharField(max_length=100, primary_key=True)
@@ -111,20 +113,9 @@ class ReportPage(models.Model):
     def __str__(self):
         return self.page_name
 
-class Class(models.Model):
-    name = models.CharField(max_length=100)
-    cover_page = models.ForeignKey('ReportPage',related_name='class_cover_page', on_delete=models.CASCADE)
-    cover_page_access = models.ForeignKey("Teacher",related_name='class_cover_page_access', on_delete=models.SET_NULL, null = True, blank=True)
-    first_page = models.ForeignKey('ReportPage',related_name='class_first_page', on_delete=models.CASCADE)
-    first_page_access = models.ForeignKey("Teacher",related_name='class_first_page_access', on_delete=models.SET_NULL, null = True, blank=True)
-    Image_page = models.ForeignKey('ImagePage',related_name='class_image_page', on_delete=models.SET_NULL, null=True, blank=True)
-    development_page = models.ManyToManyField('DevelopmentPage', blank=True, related_name='class_development_page')
-    feedback_page = models.ForeignKey('FeedbackPage', blank=True, related_name='class_feedback_page', on_delete=models.SET_NULL, null=True)
-    default_background = models.ImageField(upload_to='mainapp/static/backgrounds/', blank=True, null=True)
-    # Add other fields as needed
+class developmentPageAccess(models.Model):
+    Auth_teachers_access=models.ManyToManyField('Teacher', related_name='development_page_access', blank=True)
 
-    def __str__(self):
-        return self.name
 
 class ImagePage(models.Model):
     image = models.ImageField(upload_to='mainapp/static/backgrounds/')
@@ -226,7 +217,104 @@ class Teacher(AbstractBaseUser):
         "Is the user a admin member?"
         return self.admin
 
+def generate_unique_code():
+    while True:
+        code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=16))
+        try:
+            if not Class.objects.filter(group_id=code).exists():
+                return code
+        except OperationalError:
+            # The Class table doesn't exist yet, so we can't check if the code is unique.
+            # In this case, just return the code.
+            return code
+        
+class UniqueGroupId(models.Model):
+    group_id = models.CharField(max_length=16, primary_key=True,editable=False,unique=True, default=generate_unique_code)
+    group_devices = models.ManyToManyField('Device', blank=True, related_name='group_id_online_devices')
 
+    def __str__(self):
+        return self.group_id
+    
+    def save(self, *args, **kwargs):
+        if not self.group_id:
+            self.group_id = generate_unique_code()
+        super().save(*args, **kwargs)
+
+class Device(models.Model):
+    device_ip = models.GenericIPAddressField(protocol='IPv6',primary_key=True, editable=False)
+    last_seen = models.DateTimeField(editable=False)
+
+    def save(self, *args, **kwargs):
+        # set the last_seen field to the current time
+        self.last_seen = timezone.now()
+        super().save(*args, **kwargs)
+
+
+    def __str__(self):
+        return self.device_ip
+    
+
+def generate_unique_group_id():
+    return UniqueGroupId.objects.create(group_id=generate_unique_code())
+
+class Commit(models.Model):
+    admission_no = models.CharField(max_length=255)
+    commit_no = models.IntegerField(default=0)
+    section_nos = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class Class(models.Model):
+    name = models.CharField(max_length=100,unique=True)
+    cover_page = models.ForeignKey('ReportPage',related_name='class_cover_page', on_delete=models.CASCADE)
+    cover_page_access = models.ForeignKey("Teacher",related_name='class_cover_page_access', on_delete=models.SET_NULL, null = True, blank=True)
+    first_page = models.ForeignKey('ReportPage',related_name='class_first_page', on_delete=models.CASCADE)
+    first_page_access = models.ForeignKey("Teacher",related_name='class_first_page_access', on_delete=models.SET_NULL, null = True, blank=True)
+    Image_page = models.ForeignKey('ImagePage',related_name='class_image_page', on_delete=models.SET_NULL, null=True, blank=True)
+    Image_page_access = models.ForeignKey("Teacher",related_name='class_image_page_access', on_delete=models.SET_NULL, null = True, blank=True)
+    development_page = models.ManyToManyField('DevelopmentPage', blank=True, related_name='class_development_page')
+    development_page_access = models.ManyToManyField('developmentPageAccess',related_name='development_page_access',blank=True)
+    feedback_page = models.ForeignKey('FeedbackPage',related_name='class_feedback_page', on_delete=models.SET_NULL, null=True,blank=True)
+    default_background = models.ImageField(upload_to='mainapp/static/backgrounds/', blank=True, null=True)
+    group_id = models.ForeignKey('UniqueGroupId',related_name='class_group_id', on_delete=generate_unique_group_id,default=generate_unique_group_id, editable=False)
+    commit_number=models.IntegerField('commit_number',default=0)
+    commits=models.ManyToManyField('Commit', blank=True, related_name='class_commits', through='ClassCommit')
+    # Add other fields as needed
+    MAX_COMMIT_LIMIT = 100000  # Define your maximum commit limit here
+
+    def save(self, *args, **kwargs):
+        if self.commit_number >= self.MAX_COMMIT_LIMIT:
+            self.commit_number = 0
+        if not self.group_id:
+            self.group_id = UniqueGroupId.objects.create(group_id=generate_unique_code())
+        super().save(*args, **kwargs)
+
+
+    def add_commit(self, commit):
+        # Calculate the number of excess commits
+        excess_commits_count = self.commits.count() - 99
+        
+        if excess_commits_count > 0:
+            # Get the excess commits
+            excess_commits = self.commits.all().order_by('schemecommit__added_at')[:excess_commits_count]
+            # delete the excess commits
+            excess_commits.delete()
+        
+        # Add the new commit
+        self.commits.add(commit)
+        # Ensure the SchemeCommit entry is created to track the addition time
+        # ClassCommit.objects.create(scheme=self, commit=commit)
+
+
+    def __str__(self):
+        return self.name
+    
+class ClassCommit(models.Model):
+    scheme = models.ForeignKey(Class, on_delete=models.CASCADE)
+    commit = models.ForeignKey(Commit, on_delete=models.CASCADE)
+    added_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        unique_together = ('scheme', 'commit')
 
 
 

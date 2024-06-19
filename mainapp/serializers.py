@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ReportField, ReportPage, Class, DevelopmentPage, Choice, LearningOutcome, Section, FeedbackField, FeedbackFieldsChoice, FeedbackPage, FeedbackSection, Signature, Image , ImagePage
+from .models import ReportField, ReportPage, Class, DevelopmentPage, Choice, LearningOutcome, Section, FeedbackField, FeedbackFieldsChoice, FeedbackPage, FeedbackSection, Signature, Image , ImagePage,developmentPageAccess,Teacher,UniqueGroupId,Device,Commit
 
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -78,6 +78,10 @@ class ReportFieldSerializer(serializers.ModelSerializer):
         model = ReportField
         fields = '__all__'
 
+class CommitSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Commit
+        fields = '__all__'
 
 class ReportPageSerializer(serializers.ModelSerializer):
     report_fields = ReportFieldSerializer(many=True)
@@ -86,13 +90,42 @@ class ReportPageSerializer(serializers.ModelSerializer):
         model = ReportPage
         fields = '__all__'
 
+class TeacherSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Teacher
+        fields = '__all__' 
+
+class DevelopmentPageAccessSerializer(serializers.ModelSerializer):
+    Auth_teachers_access = TeacherSerializer(many=True)
+
+    class Meta:
+        model = developmentPageAccess
+        fields = '__all__'  
+
+class DeviceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Device
+        fields = '__all__'
+
+class uniqueGroupIdSerializer(serializers.ModelSerializer):
+    group_devices = DeviceSerializer(many=True)
+
+    class Meta:
+        model = UniqueGroupId
+        fields = '__all__'
 
 class ClassSerializer(serializers.ModelSerializer):
     cover_page = ReportPageSerializer()
     first_page = ReportPageSerializer()
     Image_page = ImagePageSerializer()
     development_page = DevelopmentPageSerializer(many=True)
+    development_page_access = DevelopmentPageAccessSerializer(many=True)
     feedback_page = FeedbackPageSerializer()
+    group_id = uniqueGroupIdSerializer()
+    Image_page_access = TeacherSerializer()
+    cover_page_access = TeacherSerializer()
+    first_page_access = TeacherSerializer()
+    commits = CommitSerializer(many=True)
 
 
     class Meta:

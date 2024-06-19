@@ -1,4 +1,4 @@
-from .models import Class, ReportPage, ReportField, LearningOutcome, Choice, Section, DevelopmentPage, FeedbackField, FeedbackFieldsChoice, FeedbackPage, FeedbackSection, Signature, Image , ImagePage
+from .models import Class, ReportPage, ReportField, LearningOutcome, Choice, Section, DevelopmentPage, FeedbackField, FeedbackFieldsChoice, FeedbackPage, FeedbackSection, Signature, Image , ImagePage,developmentPageAccess
 from .forms import UserAdminCreationForm, UserAdminChangeForm
 from django.contrib import admin
 from django.contrib.auth import get_user_model
@@ -131,7 +131,10 @@ class ImagePageAdmin(admin.ModelAdmin):
 
     def __str__(self):
         return self.name
+    
+@admin.register(developmentPageAccess)
+class DevelopmentPageAccessAdmin(admin.ModelAdmin):
+    list_display=['id']
 
-
-
-
+    def __str_(self):
+        return self.id
